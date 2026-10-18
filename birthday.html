@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Birthday!</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Playfair+Display:wght@700;900&family=Special+Elite&family=Abril+Fatface&family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#f4e7e1;--wine:#7a1230;--deep:#5a0d24;--rose:#f4b6c4;--rose2:#e58aa0;--blush:#fbd9e0;--tan:#e3cdb4;--cream:#fff1ea;--ink:#4a1226;--gold:#c9a24a;
+    --jag:polygon(0 3%,4% 0,9% 3%,15% 0,22% 2%,30% 0,38% 3%,46% 0,54% 2%,62% 0,70% 3%,78% 0,86% 2%,93% 0,100% 3%,100% 97%,95% 100%,88% 97%,80% 100%,72% 98%,64% 100%,55% 97%,47% 100%,38% 98%,30% 100%,22% 97%,14% 100%,7% 98%,0 100%)}
+  html{scroll-behavior:smooth}
+  body{color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;overflow-x:hidden;background-color:var(--paper);
+    background-image:linear-gradient(rgba(176,110,125,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(176,110,125,.2) 1px,transparent 1px);background-size:24px 24px;background-attachment:fixed}
+  .hand{font-family:'Caveat',cursive}
+  canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+  :focus-visible{outline:3px solid var(--wine);outline-offset:3px}
+
+  /* torn corner patches */
+  .corner{position:fixed;z-index:0;background:var(--wine);pointer-events:none}
+  .c-tl{top:0;left:0;width:34vw;height:12vh;clip-path:polygon(0 0,100% 0,90% 35%,74% 28%,58% 68%,34% 56%,14% 100%,0 86%)}
+  .c-br{bottom:0;right:0;width:38vw;height:12vh;clip-path:polygon(100% 100%,0 100%,12% 62%,30% 70%,46% 30%,70% 44%,88% 0,100% 12%)}
+  main,footer{position:relative;z-index:1}
+
+  /* shared scrapbook pieces */
+  .tw{filter:drop-shadow(2px 4px 5px rgba(90,13,36,.3))}
+  .torn{clip-path:var(--jag)}
+  .paper{background:var(--rose);box-shadow:2px 4px 10px rgba(90,13,36,.25);position:relative}
+  .label{display:inline-block;background:var(--wine);color:var(--cream);padding:.55rem 1.6rem;font-family:'Caveat',cursive;font-weight:700;font-size:1.9rem;transform:rotate(-2deg)}
+  .tape{position:absolute;width:96px;height:26px;top:-13px;left:50%;margin-left:-48px;transform:rotate(-4deg);opacity:.93;z-index:3}
+  .gingham{background:repeating-linear-gradient(0deg,rgba(255,255,255,.4) 0 6px,transparent 6px 12px),repeating-linear-gradient(90deg,rgba(255,255,255,.4) 0 6px,transparent 6px 12px),#a32749}
+  .dots{background:radial-gradient(circle,var(--deep) 2.5px,transparent 3px) 0 0/12px 12px,var(--rose2)}
+  .clip{position:absolute;width:26px;height:52px;top:-18px;right:14px;z-index:4}
+  .rv{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+  .rv.in{opacity:1;transform:rotate(var(--r,0deg))}
+
+  /* ransom-note title */
+  .rn{display:inline-block;line-height:1;padding:.08em .14em;margin:.03em;font-size:clamp(2.1rem,10vw,4rem);box-shadow:1px 2px 4px rgba(0,0,0,.25)}
+  .l0{background:#161616;color:var(--paper);font-family:'Alfa Slab One'}
+  .l1{background:#f1e5d6;color:#161616;font-family:'Playfair Display';font-weight:900}
+  .l2{background:#d8c5b0;color:#161616;font-family:'Special Elite'}
+  .l3{background:#fff;color:#161616;font-family:'Abril Fatface'}
+
+  /* envelope intro */
+  #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;background-color:var(--paper);background-image:linear-gradient(rgba(176,110,125,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(176,110,125,.2) 1px,transparent 1px);background-size:24px 24px;text-align:center;padding:1.5rem;transition:opacity 1s ease,visibility 1s}
+  #intro.gone{opacity:0;visibility:hidden}
+  .env{position:relative;width:min(280px,76vw);aspect-ratio:3/2;background:var(--rose2);border:0;border-radius:8px;cursor:pointer;perspective:800px;box-shadow:0 16px 34px rgba(90,13,36,.35);animation:bob 3s ease-in-out infinite}
+  .env::after{content:"";position:absolute;inset:0;background:var(--rose);clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);border-radius:8px}
+  .flap{position:absolute;top:0;left:0;right:0;height:58%;background:#d9758f;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .8s ease;z-index:3}
+  .seal{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:var(--wine);color:var(--cream);display:grid;place-items:center;font-size:22px;z-index:4;transition:opacity .4s}
+  .env.open{animation:none}.env.open .flap{transform:rotateX(180deg);z-index:0}.env.open .seal{opacity:0}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+  /* cake */
+  .cake{width:min(300px,78vw);margin:0 auto}
+  .candles{display:flex;justify-content:space-evenly;width:62%;margin:0 auto;height:78px;align-items:flex-end}
+  .candle{position:relative;width:11px;height:46px;border:0;padding:0;cursor:pointer;border-radius:3px 3px 0 0;background:repeating-linear-gradient(135deg,#fff 0 6px,var(--rose2) 6px 12px)}
+  .candle::before{content:"";position:absolute;left:50%;top:-26px;width:14px;height:24px;margin-left:-7px;background:radial-gradient(circle at 50% 72%,#fff 0,#ffd36b 42%,#ff8a3d 85%);border-radius:50% 50% 50% 50%/62% 62% 38% 38%;transform-origin:bottom;animation:flick .3s infinite alternate;transition:opacity .3s,transform .3s;box-shadow:0 0 16px 5px rgba(255,170,80,.5)}
+  .candle.out::before{opacity:0;transform:scale(.2)}
+  .candle.out::after{content:"";position:absolute;left:50%;top:-32px;width:7px;height:7px;margin-left:-3px;border-radius:50%;background:#b9a3a9;opacity:0;animation:smoke 1.3s ease-out}
+  @keyframes flick{from{transform:rotate(-3deg) scale(1)}to{transform:rotate(3deg) scale(.92,1.08)}}
+  @keyframes smoke{0%{opacity:.8;transform:translateY(0)}100%{opacity:0;transform:translateY(-36px) scale(3)}}
+  .tier{position:relative;background-image:radial-gradient(circle,var(--wine) 2.5px,transparent 3px);background-size:26px 26px}
+  .tier.top{width:62%;height:62px;margin:0 auto;border-radius:10px 10px 0 0;background-color:#f6cdbd}
+  .tier.bot{width:100%;height:84px;border-radius:10px 10px 0 0;background-color:#f2b5c1}
+  .fr{position:absolute;left:0;right:0;top:0;height:20px;background:var(--cream);border-radius:10px 10px 0 0}
+  .fr::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px;background:radial-gradient(circle at 50% 0,var(--cream) 9px,transparent 10px) 0 0/34px 14px repeat-x}
+  .plate{width:116%;margin:0 -8%;height:14px;background:#fff;border-radius:50%;box-shadow:0 10px 18px rgba(90,13,36,.3)}
+
+  /* greeting card */
+  .gcard{position:relative;width:min(330px,86vw);height:460px;margin:0 auto;perspective:1500px}
+  .inside{position:absolute;inset:0;overflow:auto;background-color:#fdf3ec;background-image:linear-gradient(rgba(176,110,125,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(176,110,125,.18) 1px,transparent 1px);background-size:22px 22px;color:var(--ink);border-radius:6px 14px 14px 6px;padding:1.6rem 1.3rem;font-family:'Caveat',cursive;font-size:1.4rem;font-weight:500;line-height:1.3;box-shadow:0 18px 40px rgba(90,13,36,.4)}
+  .inside p{margin-bottom:.7rem;opacity:0;transform:translateY(8px);transition:opacity .9s ease,transform .9s ease}
+  .gcard.open .inside p{opacity:1;transform:none;transition-delay:calc(.7s + var(--i) * .45s)}
+  .cover{position:absolute;inset:0;border:0;padding:0;cursor:pointer;transform-origin:left center;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform 1.2s cubic-bezier(.5,.1,.2,1);border-radius:6px 14px 14px 6px;background:linear-gradient(160deg,#8f2142,var(--deep));color:var(--cream);box-shadow:0 18px 40px rgba(90,13,36,.45)}
+  .cf{position:absolute;inset:14px;border:2px dashed rgba(255,241,234,.5);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem}
+  .gcard.open .cover{transform:rotateY(-165deg);pointer-events:none}
+
+  /* polaroids */
+  .pol{position:relative;width:min(310px,84vw);background:#fbf5ee;padding:14px 14px 62px;box-shadow:3px 6px 14px rgba(90,13,36,.3)}
+  .ph{aspect-ratio:1;background:radial-gradient(circle at 50% 55%,#a8304f 0,#7a1a35 75%);display:grid;place-items:center;color:#fff;font-weight:700;position:relative;overflow:hidden}
+  .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .ph::before,.ph::after{content:"✦";position:absolute;color:var(--rose);font-size:18px}.ph::before{top:14%;right:16%}.ph::after{bottom:16%;left:14%;font-size:12px}
+  .cap{position:absolute;left:14px;right:14px;bottom:10px;text-align:center;font-family:'Caveat',cursive;font-weight:700;font-size:1.55rem;line-height:1.1}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:rotate(var(--r,0deg))}.gcard .inside p{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- reusable doodles and stickers -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="bow" viewBox="0 0 120 80"><g fill="#7a1230" stroke="#a03050" stroke-width="1.5"><path d="M60 40C40 8 6 4 6 28c0 24 34 28 54 12z"/><path d="M60 40C80 8 114 4 114 28c0 24-34 28-54 12z"/><path d="M54 48 36 76l16-6 6-18z"/><path d="M66 48l18 28-16-6-6-18z"/><rect x="50" y="30" width="20" height="20" rx="6"/></g></symbol>
+  <symbol id="flower" viewBox="0 0 100 100"><g fill="#5d0f2a" stroke="#fff" stroke-width="4" paint-order="stroke"><ellipse cx="50" cy="26" rx="14" ry="26"/><ellipse cx="50" cy="26" rx="14" ry="26" transform="rotate(72 50 50)"/><ellipse cx="50" cy="26" rx="14" ry="26" transform="rotate(144 50 50)"/><ellipse cx="50" cy="26" rx="14" ry="26" transform="rotate(216 50 50)"/><ellipse cx="50" cy="26" rx="14" ry="26" transform="rotate(288 50 50)"/></g><circle cx="50" cy="50" r="9" fill="#2a0612"/></symbol>
+  <symbol id="clipsvg" viewBox="0 0 24 48"><path d="M7 4v30a5 5 0 0 0 10 0V10a3 3 0 0 0-6 0v22" fill="none" stroke="#c9a24a" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 5.5-8 11-8 11z" fill="none" stroke="#e0607f" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="corner c-tl" aria-hidden="true"></div><div class="corner c-br" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<!-- ============ ENVELOPE INTRO ============ -->
+<div id="intro">
+  <button class="env" id="envBtn" aria-label="Open the envelope"><span class="flap"></span><span class="seal">♥</span></button>
+  <div>
+    <p class="hand text-4xl font-bold" style="color:var(--wine)">Something for you</p>
+    <p class="mt-1 opacity-80">Tap the envelope to open it</p>
+  </div>
+</div>
+
+<button id="musicBtn" class="paper fixed top-4 right-4 z-40 rounded-full px-4 py-2 text-sm font-bold" style="border:0" aria-pressed="false">♪ Music off</button>
+
+<main>
+  <!-- ============ HERO + CAKE ============ -->
+  <section class="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-28 pb-16 overflow-hidden">
+    <svg class="absolute w-20 sm:w-28" style="top:64px;left:10px;transform:rotate(-12deg)" viewBox="0 0 120 80"><use href="#bow"/></svg>
+    <div class="paper absolute w-28 sm:w-36 p-3 hand text-xl font-bold leading-tight" style="top:62px;right:10px;transform:rotate(6deg)">
+      <svg class="clip"><use href="#clipsvg"/></svg>you are<br>so loved ♥
+    </div>
+    <svg class="absolute w-8" style="top:34%;left:6%" viewBox="0 0 24 24"><use href="#heart"/></svg>
+    <svg class="absolute w-7" style="top:42%;right:7%" viewBox="0 0 24 24"><use href="#heart"/></svg>
+
+    <p id="heroSub" class="hand text-3xl mb-4" style="color:var(--wine)"></p>
+    <h1 id="title" class="mb-6" aria-label="Happy Birthday"></h1>
+    <div class="tw mb-6"><div class="torn label" id="heroName"></div></div>
+    <p id="heroLine" class="hand text-2xl max-w-md mb-12"></p>
+
+    <div class="cake">
+      <div class="candles" id="candles"></div>
+      <div class="tier top"><i class="fr"></i></div>
+      <div class="tier bot"><i class="fr"></i></div>
+      <div class="plate"></div>
+    </div>
+    <p id="wishMsg" class="hand text-3xl font-bold mt-10" style="color:var(--wine)" role="status">Make a wish, then tap each candle.</p>
+    <button id="relightBtn" class="mt-2 hidden text-sm underline underline-offset-4">Light them again</button>
+
+    <div class="absolute left-3 bottom-6 w-20 rounded-md p-2 pt-5 hand text-lg font-bold leading-tight" style="background:var(--tan);transform:rotate(-5deg);box-shadow:2px 3px 6px rgba(90,13,36,.25)">
+      <span class="absolute left-1/2 top-1.5 w-3 h-3 -ml-1.5 rounded-full" style="background:var(--paper);box-shadow:inset 0 0 0 2px var(--gold)"></span>Good vibes only ♡
+    </div>
+  </section>
+
+  <!-- ============ OPENING CARD ============ -->
+  <section class="px-6 py-20 text-center">
+    <div class="tw mb-3 rv"><div class="torn label">I wrote you a card</div></div>
+    <p class="mb-10 hand text-2xl rv">Tap it to open.</p>
+    <div class="gcard rv" id="gcard">
+      <div class="inside" id="inside"></div>
+      <button class="cover" id="cover" aria-label="Open the card">
+        <span class="cf">
+          <svg class="w-24" viewBox="0 0 120 80"><use href="#bow"/></svg>
+          <span class="rn l1" style="font-size:2rem">Happy</span>
+          <span class="rn l0" style="font-size:2rem">Birthday</span>
+          <span class="hand text-2xl">for <b id="coverName"></b> ♥</span>
+        </span>
+      </button>
+    </div>
+    <button id="foldBtn" class="mt-8 text-sm underline underline-offset-4 opacity-80">Close the card</button>
+
+    <div class="tw mx-auto mt-16 max-w-sm rv" style="--r:-2deg"><div class="torn p-6 pt-8" style="background:var(--rose)">
+      <p class="inline-block px-3 py-1 text-sm hand font-bold text-xl" style="background:var(--blush);border:1px solid var(--rose2)">A little reminder:</p>
+      <p id="reminder" class="hand text-4xl font-bold leading-tight mt-3"></p>
+      <p class="mt-4 inline-block px-4 py-1 hand text-xl font-bold" style="background:var(--wine);color:var(--cream)">Keep shining always! ♥</p>
+      <p class="mt-4 py-2 text-2xl" style="background:#fffaf5">🥹 🫶 💗 🧿 🪬 🫀</p>
+    </div></div>
+  </section>
+
+  <!-- ============ MEMORIES (polaroids) ============ -->
+  <section class="max-w-4xl mx-auto px-6 py-20">
+    <div class="relative text-center mb-16 rv">
+      <div class="inline-block px-6 py-3 rotate-[-2deg]" style="background:#d9c7a7;border:3px double #8c7550;box-shadow:2px 4px 8px rgba(90,13,36,.3)">
+        <p style="font-family:'Special Elite';color:#6b1a2e;font-size:clamp(1.3rem,6vw,2rem);line-height:1.05">THESE MEMORIES<br>MAKE ME SMILE</p>
+      </div>
+      <svg class="absolute w-16 sm:w-24" style="right:-4px;top:-28px" viewBox="0 0 100 100"><use href="#flower"/></svg>
+    </div>
+    <div id="timeline" class="grid gap-16 md:grid-cols-2 justify-items-center"></div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="text-center px-6 pt-10 pb-28">
+    <div class="tw rv"><div class="torn inline-block px-8 py-4 hand text-3xl font-bold" style="background:var(--wine);color:var(--cream)">Save this one. Happy birthday, <span id="footName"></span> ♥</div></div>
+    <button id="popBtn" class="mt-10 rounded-full px-7 py-3 font-bold" style="background:var(--wine);color:var(--cream);box-shadow:0 5px 0 var(--deep)">Celebrate again</button>
+    <div class="paper mx-auto mt-14 w-44 p-4 hand text-2xl font-bold rv" style="--r:3deg"><div class="tape gingham"></div>So lucky to have you! ✿</div>
+    <p class="mt-10 text-sm opacity-70">With love, <span id="footFrom"></span></p>
+  </footer>
+</main>
+
+<script>
+/* =====================================================
+   1. CUSTOMIZE HERE: all personal text lives in CONFIG
+   ===================================================== */
+const CONFIG = {
+  name: "Brother",
+  from: "your sibling",
+  age: 25,                          // candles shown (max 5)
+  heroLine: "Today is all about you. Thank you for being exactly who you are.",
+  reminder: "the world is brighter because you're in it ♥",
+  card: [                           // one paragraph per entry
+    "Dear {name},",
+    "Happy birthday. Growing up next to you has been one of the best parts of my life. You were my first friend and my loudest supporter, long before I knew how lucky I was.",
+    "Thank you for the laughter, the arguments we forgot by dinner, and every time you showed up without being asked.",
+    "You make the people around you feel safe and seen, and I hope you know how much that matters.",
+    "I'm proud of you today and every day. Whatever this year brings, you'll never face it alone.",
+    "Love always,<br>{from}"
+  ],
+  memories: [                       // photo: "img/trip.jpg" replaces the "Add photo" placeholder
+    { year: "The beginning", title: "The day you showed up", text: "Write a favourite early memory here.", photo: "" },
+    { year: "Growing up", title: "Our summers", text: "Add an inside joke or a place you both loved.", photo: "" },
+    { year: "Together", title: "That one trip", text: "Add a story you both still laugh about.", photo: "" },
+    { year: "Today", title: "Still my best friend", text: "Write what you admire about him now.", photo: "" }
+  ]
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fill = s => s.replace(/{name}/g, esc(CONFIG.name)).replace(/{from}/g, esc(CONFIG.from));
+
+$('#heroName').textContent = CONFIG.name;
+$('#heroSub').textContent = `Turning ${CONFIG.age} today`;
+$('#heroLine').textContent = CONFIG.heroLine;
+$('#reminder').textContent = CONFIG.reminder;
+$('#coverName').textContent = CONFIG.name;
+$('#footName').textContent = CONFIG.name;
+$('#footFrom').textContent = CONFIG.from;
+document.title = `Happy Birthday, ${CONFIG.name}!`;
+
+/* ---------- Ransom-note title: each letter is a cut-out ---------- */
+(function () {
+  let i = 0;
+  const word = w => [...w].map(ch => {
+    const rot = ((i * 37) % 9) - 4, cls = 'l' + (i * 3 % 4); i++;
+    return `<span class="rn ${cls}" style="transform:rotate(${rot}deg)" aria-hidden="true">${ch}</span>`;
+  }).join('');
+  $('#title').innerHTML = word('HAPPY') + '<br>' + word('BIRTHDAY');
+})();
+
+/* =====================================================
+   2. CONFETTI (pink, burgundy, cream, gold)
+   ===================================================== */
+const cv = $('#confetti'), cx = cv.getContext('2d');
+let parts = [], raf = null;
+const COLORS = ['#7a1230', '#f4b6c4', '#fff1ea', '#e58aa0', '#c9a24a'];
+const fit = () => { cv.width = innerWidth; cv.height = innerHeight; };
+addEventListener('resize', fit); fit();
+function burst(x = innerWidth / 2, y = innerHeight / 2, n = 110) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 8;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 5, s: 6 + Math.random() * 6, c: COLORS[i % 5], r: Math.random() * 6, vr: (Math.random() - .5) * .35, life: 170 });
+  }
+  go();
+}
+function rain(n = 70) {
+  for (let i = 0; i < n; i++)
+    parts.push({ x: Math.random() * cv.width, y: -20 - Math.random() * 300, vx: (Math.random() - .5) * 1.5, vy: 1.5 + Math.random() * 2.5, s: 6 + Math.random() * 5, c: COLORS[i % 5], r: Math.random() * 6, vr: (Math.random() - .5) * .25, life: 320 });
+  go();
+}
+const go = () => { if (!raf) raf = requestAnimationFrame(tick); };
+function tick() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.life-- > 0 && p.y < cv.height + 30);
+  for (const p of parts) {
+    p.vy += .15; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(tick) : null;
+}
+
+/* =====================================================
+   3. MUSIC: music-box "Happy Birthday" loop (Web Audio)
+   ===================================================== */
+const BEAT = .6;
+const TUNE = [
+  [392,.75],[392,.25],[440,1],[392,1],[523.25,1],[493.88,2],
+  [392,.75],[392,.25],[440,1],[392,1],[587.33,1],[523.25,2],
+  [392,.75],[392,.25],[783.99,1],[659.25,1],[523.25,1],[493.88,1],[440,1],
+  [698.46,.75],[698.46,.25],[659.25,1],[523.25,1],[587.33,1],[523.25,2]
+];
+const CHORDS = [130.81, 98, 130.81, 87.31];
+let ac, master, loopT, playing = false;
+function note(f, t, d, type = 'sine', vol = .16) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02);
+  g.gain.exponentialRampToValueAtTime(.001, t + Math.max(d, .6));
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + Math.max(d, .6) + .1);
+}
+function playTune() {
+  const t0 = ac.currentTime + .1; let t = t0;
+  for (const [f, b] of TUNE) { note(f, t, b * BEAT); note(f * 2, t, b * BEAT, 'triangle', .035); t += b * BEAT; }
+  CHORDS.forEach((c, i) => {
+    const s = t0 + i * 6 * BEAT;
+    note(c, s, 3 * BEAT, 'triangle', .13);
+    note(i === 3 ? 130.81 : c, s + 3 * BEAT, 3 * BEAT, 'triangle', .13);
+  });
+  loopT = setTimeout(playTune, (24 * BEAT + 2.5) * 1000);
+}
+function musicOn() {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = .7; master.connect(ac.destination);
+    ac.resume(); playTune(); playing = true; syncMusic();
+  } catch (e) { playing = false; syncMusic(true); }
+}
+function musicOff() { clearTimeout(loopT); if (master) master.disconnect(); playing = false; syncMusic(); }
+function syncMusic(failed) {
+  const b = $('#musicBtn');
+  b.textContent = failed ? '♪ Audio blocked. Tap to retry' : playing ? '♪ Music on' : '♪ Music off';
+  b.setAttribute('aria-pressed', playing);
+}
+$('#musicBtn').onclick = () => playing ? musicOff() : musicOn();
+
+/* =====================================================
+   4. ENVELOPE INTRO
+   ===================================================== */
+$('#envBtn').onclick = e => {
+  e.currentTarget.classList.add('open');
+  const r = e.currentTarget.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top + r.height / 2, 120);
+  musicOn();                                  // allowed: this is a user click
+  setTimeout(() => { $('#intro').classList.add('gone'); rain(80); }, 1000);
+};
+$('#popBtn').onclick = e => { const r = e.target.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, 130); };
+
+/* =====================================================
+   5. CAKE: tap candles to blow them out
+   ===================================================== */
+const candleBox = $('#candles');
+function light() {
+  const n = Math.min(Math.max(CONFIG.age, 1), 5);
+  candleBox.innerHTML = Array.from({ length: n }, (_, i) => `<button class="candle" aria-label="Blow out candle ${i + 1}"></button>`).join('');
+  $('#wishMsg').textContent = 'Make a wish, then tap each candle.';
+  $('#relightBtn').classList.add('hidden');
+}
+candleBox.addEventListener('click', e => {
+  const c = e.target.closest('.candle'); if (!c) return;
+  c.classList.add('out');
+  if ([...candleBox.children].every(k => k.classList.contains('out'))) {
+    $('#wishMsg').textContent = 'May every wish come true ♥';
+    $('#relightBtn').classList.remove('hidden');
+    burst(innerWidth / 2, innerHeight / 2, 160); rain(60);
+  }
+});
+$('#relightBtn').onclick = light;
+light();
+
+/* =====================================================
+   6. GREETING CARD
+   ===================================================== */
+$('#inside').innerHTML = CONFIG.card.map((p, i) => `<p style="--i:${i}">${fill(p)}</p>`).join('');
+$('#cover').onclick = () => { $('#gcard').classList.add('open'); burst(innerWidth / 2, innerHeight * .55, 70); };
+$('#foldBtn').onclick = () => $('#gcard').classList.remove('open');
+
+/* =====================================================
+   7. MEMORIES: polaroids with sticky-note stories
+   ===================================================== */
+$('#timeline').innerHTML = CONFIG.memories.map((m, i) => {
+  const tilt = i % 2 ? 2.5 : -2.5, tape = i % 2 ? 'dots' : 'gingham';
+  return `<article class="rv" style="--r:${tilt}deg">
+    <div class="pol"><div class="tape ${tape}"></div>
+      <div class="ph">${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.title)}">` : 'Add photo'}</div>
+      <p class="cap">${esc(m.year)}</p></div>
+    <div class="paper -mt-8 ml-auto mr-2 w-[78%] p-4 hand text-xl leading-snug" style="transform:rotate(${-tilt}deg)">
+      <b class="text-2xl">${esc(m.title)}</b><br>${esc(m.text)}</div>
+  </article>`;
+}).join('');
+
+/* =====================================================
+   8. SCROLL REVEAL
+   ===================================================== */
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
